@@ -77,6 +77,14 @@ public class Storage {
         throw new CloneNotSupportedException();
     }
 
+    public int getNumberOfValidAccessTokens(){
+        return accessTokens.size();
+    }
+
+    public void revokeAllAccessTokens(){
+        accessTokens.clear();
+        System.out.println("All access tokens revoked!");
+    }
     //todo clean up tokens based on timestamp
 
 
