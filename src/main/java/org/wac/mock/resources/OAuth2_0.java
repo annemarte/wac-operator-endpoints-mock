@@ -106,7 +106,7 @@ public class OAuth2_0 {
             }
 
     }
-    Random r = new Random(12345683);
+    Random r = new Random();
     /**
      * This is really the wac endpoint.Proxy session token is wac-specific
      */
