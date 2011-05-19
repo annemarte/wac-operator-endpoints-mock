@@ -1,11 +1,14 @@
 package org.wac.mock.mockdb;
 
+import java.io.Serializable;
+
 /**
  * User: Anne Marte Hjemås
  * Date: 11.05.11
  * Time: 17:28
  */
-public class TransactionStatus {
+public class TransactionStatus implements Serializable{
+    private static final long serialVersionUID = 357562534497348251L;
     String id;
     String status;
 

@@ -17,7 +17,7 @@ import java.util.Random;
  */
 @Path("/1/payment/acr:Authorization")
 public class PaymentAPI {
-    Random r = new Random(12345683);
+    Random r = new Random();
 
     @POST
     @Path("/transactions/amount")

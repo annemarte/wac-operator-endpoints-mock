@@ -2,6 +2,7 @@ package org.wac.mock.mockdb;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * User: Anne Marte Hjemås
@@ -11,15 +12,6 @@ import java.util.Map;
 public class Storage {
     private static Storage singletonObject;
     private static Map<String, Consumer> consumers = new HashMap<String, Consumer>();
-    static {
-        Consumer test = new Consumer();
-        test.setClientId("123456");
-        test.setName("MyConsumer");
-        test.setDescription("Test consumer");
-        test.setScope("all");
-        test.setSecret("waccawacca1234");
-        consumers.put("123456", test);
-    }
 
     //keeps accesstokens on the go
     private static Map<String, AccessToken> unAuthorized = new HashMap<String, AccessToken>();
@@ -37,6 +29,7 @@ public class Storage {
         }
         return singletonObject;
     }
+
 
     public void putConsumer(String clientId, Consumer sessionInfo){
         consumers.put(clientId, sessionInfo);
@@ -84,6 +77,10 @@ public class Storage {
     public void revokeAllAccessTokens(){
         accessTokens.clear();
         System.out.println("All access tokens revoked!");
+    }
+
+    public Set<String> getConsumerKeys(){
+        return consumers.keySet();
     }
     //todo clean up tokens based on timestamp
 

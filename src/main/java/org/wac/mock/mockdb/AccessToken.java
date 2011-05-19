@@ -1,5 +1,6 @@
 package org.wac.mock.mockdb;
 
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -9,7 +10,10 @@ import java.util.Map;
  * Date: 11.05.11
  * Time: 10:19
  */
-public class AccessToken {
+public class AccessToken implements Serializable{
+
+    private static final long serialVersionUID = -882877653402984139L;
+
     Consumer consumer;
     String scope;
     String authorizedScope;

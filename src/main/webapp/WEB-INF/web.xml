@@ -18,6 +18,12 @@
     </servlet>
 
     <servlet>
+        <servlet-name>MockDataServlet</servlet-name>
+        <servlet-class>org.wac.mock.mockdb.MockDataPopulatorServlet</servlet-class>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+
+    <servlet>
         <servlet-name>MBeanServlet</servlet-name>
         <servlet-class>org.wac.common.jmx.MBeanServlet</servlet-class>
         <load-on-startup>1</load-on-startup>
@@ -27,7 +33,13 @@
         <servlet-name>MBeanServlet</servlet-name>
         <url-pattern>/mbean/*</url-pattern>
     </servlet-mapping>
-     <servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>MockDataServlet</servlet-name>
+        <url-pattern>/mockdata/*</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
         <servlet-name>Jersey</servlet-name>
         <url-pattern>/rest/*</url-pattern>
     </servlet-mapping>

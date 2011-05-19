@@ -27,7 +27,7 @@ import static junit.framework.Assert.assertNotNull;
  */
 public class Oauth2_0_IT {
     private static final String LOCALHOST = "http://localhost:8080/rest/";
-    private static final String CLIENT_ID = "123456";
+    private static final String CLIENT_ID = "782378hjgfjrertre92393";
     private static final String CLIENT_SECRET = "waccawacca1234";
     private static final String CLIENT_REDIRECT_URL="http://localhost:8080/jsp/clientsPage.jsp";
 
