@@ -30,5 +30,10 @@ public class ConsumerService implements ConsumerServiceMXBean {
         Storage.getInstance().putConsumer(consumer.getClientId(), consumer);
     }
 
+    @Override
+    public int getNumberOfConsumers() {
+        return Storage.getInstance().getConsumerKeys().size();
+    }
+
 
 }

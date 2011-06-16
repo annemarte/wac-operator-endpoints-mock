@@ -5,13 +5,15 @@ import junit.framework.Assert;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpMethod;
 import org.apache.commons.httpclient.HttpStatus;
-import org.apache.commons.httpclient.NameValuePair;
 import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.httpclient.methods.RequestEntity;
 import org.apache.commons.httpclient.methods.StringRequestEntity;
 import org.apache.commons.httpclient.util.URIUtil;
 import org.junit.Test;
+import org.openqa.selenium.By;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.htmlunit.HtmlUnitDriver;
 
 import java.io.IOException;
 
@@ -26,6 +28,8 @@ import static junit.framework.Assert.assertNotNull;
  * Integration test. Server must be running
  */
 public class Oauth2_0_IT {
+
+    // private static final String PROXY_HEADER = "http.route.default-proxy";
     private static final String LOCALHOST = "http://localhost:8080/rest/";
     private static final String CLIENT_ID = "782378hjgfjrertre92393";
     private static final String CLIENT_SECRET = "waccawacca1234";
@@ -36,119 +40,77 @@ public class Oauth2_0_IT {
 
 
     @Test
-    public void testOauth2AuthorizationTokenFlow() throws Exception {
-        String accessToken;
-        //get oauth code
-        String code = authorizeInit();
-        //operator login
-        postAuthentication(code);
-        //operator authorize
-        postAuthorization(code);
-        //get access token
-        accessToken = postAccessToken(code);
+    public void testOauth2AuthorizationTokenFlow() throws Exception{
 
-        String transactionId = postPayment(accessToken);
-
-        String status = getStatus(accessToken, transactionId);
-
-        assertEquals("Charged", status);
-
-        String statusList = listStatus(accessToken);
-        assertNotNull(statusList);
+            String accessToken;
+            //get oauth code
+            System.out.println("authorize");
+            String code = authorize();
+            //get access token
+            System.out.println("get access token");
+            accessToken = getAccessToken(code);
+            // perform payment
+            System.out.println("payment++");
+            String transactionId = payment(accessToken);
+            //check status
+            String status = getStatus(accessToken, transactionId);
+            assertEquals("Charged", status);
+            //check status list
+            String statusList = listStatus(accessToken);
+            assertNotNull(statusList);
+            System.out.println("success!");
     }
 
-
-    private String authorizeInit() throws Exception {
-        HttpClient client = new HttpClient();
-        HttpMethod authorizeMethod = new GetMethod(LOCALHOST+"2/oauth/authorize");
-        try{
-
-            String resourceUri = "(/payment/acr:Authorization/transactions/amount";
-            String scope = "POST-"+resourceUri+"?code=wac-123";
-            //add parameters
-            NameValuePair param1 = new NameValuePair("client_id", URIUtil.encodeQuery(CLIENT_ID));
-            NameValuePair param2 = new NameValuePair("redirect_uri", URIUtil.encodeQuery(CLIENT_REDIRECT_URL));
-            NameValuePair param3 = new NameValuePair("scope", URIUtil.encodeQuery(scope));
-            NameValuePair param4 = new NameValuePair("response_type", URIUtil.encodeQuery("code"));
-            NameValuePair[] params = new NameValuePair[] {param1, param2, param3, param4};
-
-            authorizeMethod.setQueryString(params);
-            client.executeMethod(authorizeMethod);
-
-            //should have been redirected to authentication page
-            Assert.assertEquals(HttpStatus.SC_OK, authorizeMethod.getStatusCode());
-            String response = authorizeMethod.getResponseBodyAsString();
-
-            assertNotNull(response);
-            //content of login page
-            System.out.println("Response = " + response);
-
-            String code = authorizeMethod.getQueryString();
-            return code;
-        }finally{
-            authorizeMethod.releaseConnection();
-        }
+    private HttpClient getHttpClient(){
+        /*  HostConfiguration config = client.getHostConfiguration();
+       config.setProxy("localhost", 9797);*/
+        return new HttpClient();
     }
-    /**
+
+    private String authorize () throws Exception {
+        HtmlUnitDriver driver = new HtmlUnitDriver();//new FirefoxDriver(); ;
+        System.out.println("got driver");
+        //  driver.setProxy("localhost", 9797);
+        //driver.manage().setSpeed(Speed.MEDIUM);
+        //parameters
+        String resourceUri = "(/payment/acr:Authorization/transactions/amount";
+        String client_id = URIUtil.encodeQuery(CLIENT_ID);
+        String redirect_uri =URIUtil.encodeQuery(CLIENT_REDIRECT_URL);
+        String scope= URIUtil.encodeQuery("POST-"+resourceUri+"?code=wac-123");
+        String response_type = URIUtil.encodeQuery("code");
+        String queryString = "client_id="+client_id+"&redirect_uri="+redirect_uri+"&scope="+scope+"&response_type="+response_type;
+        String authorizeRequestString = LOCALHOST+"2/oauth/authorize?"+queryString;
+        driver.get(authorizeRequestString);
+        System.out.println("got login page");
+        driver.findElement(By.id("j_username")).sendKeys("bob");
+        WebElement element = driver.findElement(By.id("j_password"));
+        element.sendKeys("builder");
+        element.submit();
+        boolean startsWith = driver.getCurrentUrl().startsWith(AUTHORIZATION_PAGE);
+        assert(startsWith);
+        // Sleep until the div we want is visible or 5 seconds is over
+        Thread.sleep(10);
+
+        //authorize
+        driver.findElement(By.id("b_yes")).click();
+        Thread.sleep(10);
+        String clientUrl = driver.getCurrentUrl();
+        String code=clientUrl.split("=")[1];
+        assertNotNull(code);
+        assertEquals(CLIENT_REDIRECT_URL + "?code=" + code, clientUrl);
+        return code;
+    }
+
+    /*
      * Trigger operator authorization endpoint to initiate authentication and authorization
+     * @param code authorization code
      * @throws Exception
+     * @return  accesstoken
      */
-
-    private void postAuthentication(String code) throws IOException {
-        HttpClient client = new HttpClient();
+    private String getAccessToken(String code) throws IOException {
+        HttpClient client = getHttpClient();
         //should be encoded or over https
-        String data = code+"&username=bob&password=builder";
-        PostMethod postAuthentication = new PostMethod(LOCALHOST+"operator/legacy/authenticate");
-        postAuthentication.addRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-
-        RequestEntity re = null;
-        try {
-            re = new StringRequestEntity(data, null, null);
-            postAuthentication.setRequestEntity(re);
-            postAuthentication.setContentChunked(true);
-
-            client.executeMethod(postAuthentication);
-            //redirect page
-            //should get a redirect to authorization page
-            //content of login page
-            System.out.println("Response = " + postAuthentication.getResponseBodyAsString());
-            Assert.assertEquals(HttpStatus.SC_MOVED_TEMPORARILY, postAuthentication.getStatusCode());
-            String location = postAuthentication.getResponseHeader("location").getValue();
-            Assert.assertEquals(AUTHORIZATION_PAGE, location);
-
-        }finally {
-            postAuthentication.releaseConnection();
-        }
-    }
-
-    private void postAuthorization(String code) throws IOException {
-        HttpClient client = new HttpClient();
-        //should be encoded or over https
-        String data = code+"&authorize=yes";
-        PostMethod postAuthorize = new PostMethod(LOCALHOST+"operator/legacy/authorize");
-        postAuthorize.addRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-
-        RequestEntity re;
-        try {
-            re = new StringRequestEntity(data, null, null);
-            postAuthorize.setRequestEntity(re);
-            postAuthorize.setContentChunked(true);
-
-            client.executeMethod(postAuthorize);
-            //redirect page
-            //should get a redirect to authorization page
-            Assert.assertEquals(HttpStatus.SC_MOVED_TEMPORARILY, postAuthorize.getStatusCode());
-            String location = postAuthorize.getResponseHeader("location").getValue();
-            Assert.assertEquals(CLIENT_REDIRECT_URL+"?"+code, location);
-        }finally {
-            postAuthorize.releaseConnection();
-        }
-    }
-
-    private String postAccessToken(String code) throws IOException {
-        HttpClient client = new HttpClient();
-        //should be encoded or over https
-        String data = code+"&client_id="+CLIENT_ID+"&client_secret="+CLIENT_SECRET+"&redirect_uri="+CLIENT_REDIRECT_URL+"&grant_type=authorization_code";
+        String data = "code="+code+"&client_id="+CLIENT_ID+"&client_secret="+CLIENT_SECRET+"&redirect_uri="+CLIENT_REDIRECT_URL+"&grant_type=authorization_code";
         PostMethod postAccessToken= new PostMethod(LOCALHOST+"2/oauth/access-token");
         postAccessToken.addRequestHeader("Content-Type", "application/x-www-form-urlencoded");
         postAccessToken.addRequestHeader("Connection", "keep-alive");
@@ -169,10 +131,10 @@ public class Oauth2_0_IT {
         }finally {
             postAccessToken.releaseConnection();
         }
-
     }
 
-    private String postPayment(String accessToken) throws IOException {
+    private String payment(String accessToken) throws IOException {
+        HttpClient client = getHttpClient();
         String data="endUserId= acr:Authorization&"+
                 "transactionOperationStatus=charged&"+
                 "description= Single%20general%20admission%20theater%20ticket&"+
@@ -182,7 +144,7 @@ public class Oauth2_0_IT {
                 "purchaseCategoryCode=Ticket&"+
                 "channel=WAP";
 
-        HttpClient client = new HttpClient();
+
         //should be encoded or over https
         PostMethod postPayment= new PostMethod(LOCALHOST+"1/payment/acr:Authorization/transactions/amount");
         postPayment.addRequestHeader("Content-Type", "application/x-www-form-urlencoded");
@@ -206,7 +168,7 @@ public class Oauth2_0_IT {
     }
 
     private String getStatus(String accessToken, String transactionId) throws IOException {
-        HttpClient client = new HttpClient();
+        HttpClient client = getHttpClient();
         HttpMethod paymentStatusMethod = new GetMethod(LOCALHOST+"1/payment/acr:Authorization/transactions/amount/"+transactionId+"/");
         try{
 
@@ -228,7 +190,7 @@ public class Oauth2_0_IT {
 
 
     private String listStatus(String accessToken) throws IOException {
-        HttpClient client = new HttpClient();
+        HttpClient client = getHttpClient();
         HttpMethod paymentStatusListMethod = new GetMethod(LOCALHOST+"1/payment/acr:Authorization/transactions/amount/");
         try{
 

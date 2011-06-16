@@ -38,6 +38,7 @@ public class PaymentAPI {
             TransactionStatus status = new TransactionStatus();
             status.setId(id);
             status.setStatus("Charged");
+            System.out.println("Charged!");
             Storage.getInstance().getAccessToken(at.getAccessToken()).putTransaction(id, status);
             //can only charge once.
             Storage.getInstance().getAccessToken(at.getAccessToken()).setCharged(true);

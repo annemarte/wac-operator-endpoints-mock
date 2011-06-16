@@ -14,11 +14,11 @@
 <h1>Login Page</h1>
 
 Enter your login details here:
-<form action="http://localhost:8080/rest/operator/legacy/authenticate">
-    <input type="text" name="code" value=<%=code%>/><br/>
-    <input type="text" name="username"/> <br/>
-    <input type="password" name="password"/> <br/>
-    <input type="submit" name="ok" value="ok"/>
+<form action="http://localhost:8080/rest/operator/legacy/authenticate" method="post">
+    <input type="hidden" value="<%=code%>"  name="code"/><br/>
+    <input id="j_username" type="text" name="username"/> <br/>
+    <input id="j_password" type="password" name="password"/> <br/>
+    <input id="j_sumbit" type="submit" name="ok" value="ok"/>
 </form>
 
 

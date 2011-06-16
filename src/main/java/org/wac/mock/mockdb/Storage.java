@@ -1,6 +1,7 @@
 package org.wac.mock.mockdb;
 
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
@@ -19,9 +20,13 @@ public class Storage {
     //ready to use!
     private static Map<String, AccessToken> accessTokens = new HashMap<String, AccessToken>();
 
+    Cleaner cleaner = new Cleaner();
     /** A private Constructor prevents any other class from instantiating. */
     private Storage() {
-        //	 Optional Code
+        if(!cleaner.running){
+            System.out.println("*****Starting cleaner*****");
+            new Thread(cleaner).start();
+        }
     }
     public static synchronized Storage getInstance() {
         if (singletonObject == null) {
@@ -82,7 +87,42 @@ public class Storage {
     public Set<String> getConsumerKeys(){
         return consumers.keySet();
     }
-    //todo clean up tokens based on timestamp
+
+    public int getNumberOfSessionTokens(){
+        return unAuthorized.size();
+    }
+
+    public void revokeAllSessionTokens(){
+        unAuthorized.clear();
+    }
+
+    public class Cleaner implements Runnable {
+        protected boolean running = false;
+        @Override
+        public void run() {
+            running = true;
+
+            while(running){
+                System.out.println("Cleaning");
+                try {
+                    Thread.sleep(10000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+
+                Iterator it =accessTokens.entrySet().iterator();
+                while(it.hasNext()){
+                    Map.Entry entry = (Map.Entry)it.next();
+                    AccessToken token = (AccessToken) entry.getValue();
+                    if((System.currentTimeMillis()-token.getTimestamp())>=token.getExpiresIn()){
+                        it.remove();
+                    }
+                }
+
+            }
+        }
+    }
+
 
 
 }

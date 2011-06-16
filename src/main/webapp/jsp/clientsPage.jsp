@@ -9,4 +9,6 @@
 <html>
 <head><title>Success</title></head>
 <body><h1>Ready to pay!</h1></body>
+    Cheat page. <br/>
+    Should be redirected to a servlet and then "Charged", but we split the two steps.
 </html>

@@ -36,7 +36,7 @@ public class OperatorLogin {
         //mock remote call to some internal service
         System.out.println("Logging in");
         if(validateLogin(username, password)){
-            return Response.status(302).header("location",new URI(authoriziationPage)).build();
+            return Response.status(302).header("location",new URI(authoriziationPage+"?code="+code)).build();
 
         }else{
             return Response.status(Response.Status.BAD_REQUEST).entity("errorMessage:Username or password is incorrect").build();
@@ -51,7 +51,7 @@ public class OperatorLogin {
                               @FormParam("authorize") String authorize) throws URISyntaxException {
         //mock remote call to some internal service
         System.out.println("Authorizing");
-        if(authorize.equals("yes")){
+        if(authorize.equals("Yes")){
             AccessToken token = Storage.getInstance().getTokenSession(code);
             token.setAuthorizedScope(token.getScope());
             token.setTimestamp(System.currentTimeMillis());

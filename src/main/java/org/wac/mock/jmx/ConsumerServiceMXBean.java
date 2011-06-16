@@ -14,4 +14,5 @@ public interface ConsumerServiceMXBean {
     public String[] listConsumerKeys();
     public Consumer getConsumer(String clientKey);
     public void setConsumer(Consumer consumer);
+    public int getNumberOfConsumers();
 }
