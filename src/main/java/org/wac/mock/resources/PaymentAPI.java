@@ -25,13 +25,13 @@ public class PaymentAPI {
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     public Response chargeAmount(@FormParam("code") String code,
                                  @HeaderParam("Authorization") String auth){
-        String token = auth.split(" ")[1];
-        AccessToken at = Storage.getInstance().getAccessToken(token);
+        String accessToken = auth.split(" ")[1];
+        AccessToken at = Storage.getInstance().getAccessToken(accessToken);
         if(at==null){
             return Response.status(Response.Status.BAD_REQUEST).entity("errorMessage: invalid access token!").build();
         }
         if(at.getScope().contains(code)){
-            if(Storage.getInstance().getAccessToken(at.getAccessToken()).isCharged()){
+            if(at.isCharged()){
                 return Response.status(Response.Status.BAD_REQUEST).entity("errorMessage: this has already been charged").build();
             }
             String id = "wac-"+String.valueOf(Math.abs(r.nextLong()));
@@ -41,7 +41,7 @@ public class PaymentAPI {
             System.out.println("Charged!");
             Storage.getInstance().getAccessToken(at.getAccessToken()).putTransaction(id, status);
             //can only charge once.
-            Storage.getInstance().getAccessToken(at.getAccessToken()).setCharged(true);
+            at.setCharged(true);
             return Response.ok("code =" + id).build();
         }else{
             //or redirect to get access token..

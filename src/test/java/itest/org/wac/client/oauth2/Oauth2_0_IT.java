@@ -2,6 +2,7 @@ package itest.org.wac.client.oauth2;
 
 
 import junit.framework.Assert;
+import org.apache.commons.httpclient.HostConfiguration;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpMethod;
 import org.apache.commons.httpclient.HttpStatus;
@@ -42,35 +43,36 @@ public class Oauth2_0_IT {
     @Test
     public void testOauth2AuthorizationTokenFlow() throws Exception{
 
-            String accessToken;
-            //get oauth code
-            System.out.println("authorize");
-            String code = authorize();
-            //get access token
-            System.out.println("get access token");
-            accessToken = getAccessToken(code);
-            // perform payment
-            System.out.println("payment++");
-            String transactionId = payment(accessToken);
-            //check status
-            String status = getStatus(accessToken, transactionId);
-            assertEquals("Charged", status);
-            //check status list
-            String statusList = listStatus(accessToken);
-            assertNotNull(statusList);
-            System.out.println("success!");
+        String accessToken;
+        //get oauth code
+        System.out.println("authorize");
+        String code = authorize();
+        //get access token
+        System.out.println("get access token");
+        accessToken = getAccessToken(code);
+        // perform payment
+        System.out.println("payment++");
+        String transactionId = payment(accessToken);
+        //check status
+        String status = getStatus(accessToken, transactionId);
+        assertEquals("Charged", status);
+        //check status list
+        String statusList = listStatus(accessToken);
+        assertNotNull(statusList);
+        System.out.println("success!");
     }
 
     private HttpClient getHttpClient(){
-        /*  HostConfiguration config = client.getHostConfiguration();
-       config.setProxy("localhost", 9797);*/
-        return new HttpClient();
+        HttpClient client = new HttpClient();
+        HostConfiguration config = client.getHostConfiguration();
+        config.setProxy("localhost", 9797);
+        return client;
     }
 
     private String authorize () throws Exception {
         HtmlUnitDriver driver = new HtmlUnitDriver();//new FirefoxDriver(); ;
         System.out.println("got driver");
-        //  driver.setProxy("localhost", 9797);
+        // driver.setProxy("localhost", 9797);
         //driver.manage().setSpeed(Speed.MEDIUM);
         //parameters
         String resourceUri = "(/payment/acr:Authorization/transactions/amount";
@@ -118,7 +120,7 @@ public class Oauth2_0_IT {
         try {
             re = new StringRequestEntity(data, null, null);
             postAccessToken.setRequestEntity(re);
-            postAccessToken.setContentChunked(true);
+            postAccessToken.setContentChunked(false);
 
             client.executeMethod(postAccessToken);
 

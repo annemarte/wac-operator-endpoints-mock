@@ -99,7 +99,7 @@ public class OAuth2_0 {
                 String accessToken = String.valueOf(Math.abs(r.nextLong()));
                 at.setAccessToken(accessToken);
                 at.setTimestamp(System.currentTimeMillis());
-                at.setExpiresIn(6000);
+                at.setExpiresIn(10*60*1000);
                 Storage.getInstance().putAccessToken(accessToken,at);
                 Storage.getInstance().deleteTokenSession(code);
                 return Response.ok("access_token="+accessToken+"&expires_in="+at.getExpiresIn()+"&token_type=OAuth2.0").build();
